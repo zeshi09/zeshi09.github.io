@@ -1,240 +1,475 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>blackzeshi</title>
-  
-  <!-- Подключаем шрифт (по желанию) -->
-  <link
-    href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap"
-    rel="stylesheet"
-  />
-  
-  <style>
-    /* Общий сброс */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    body {
-      font-family: 'Roboto', sans-serif;
-      overflow: hidden; /* Чтобы не было прокрутки, если контент больше экрана */
-      background: #000; /* Чёрный фон */
-      color: #fff;
-      position: relative; /* Для позиционирования контента поверх canvas */
-      height: 100vh;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>blackzeshi</title>
 
-    /* Canvas с анимацией "Матрицы" */
-    #matrixCanvas {
-      position: fixed; /* Фиксируем на заднем плане */
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: -1; /* Ставим за все элементы */
-    }
-
-    /* Блок контента */
-    .content {
-      position: relative;
-      z-index: 10; /* Над canvas */
-      text-align: center;
-      padding-top: 4rem;
-      padding-left: 1rem;
-      padding-right: 1rem;
-    }
-
-    /* Аватар */
-    .avatar {
-      width: 200px;
-      height: 200px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 3px solid #2ecc71; /* Зелёная рамка */
-      box-shadow: 0 0 20px rgba(46, 204, 113, 0.6);
-    }
-
-    h1 {
-      margin-top: 1rem;
-      font-size: 2.4rem;
-      text-shadow: 0 0 10px #2ecc71;
-    }
-
-    .description {
-      max-width: 600px;
-      margin: 1.5rem auto;
-      font-size: 1.2rem;
-      line-height: 1.6;
-    }
-
-    /* Анимация «переливающихся» кнопок */
-    .links {
-      margin-top: 2rem;
-    }
-    .link-btn {
-      display: inline-block;
-      margin: 0 1rem;
-      padding: 0.8rem 1.2rem;
-      font-weight: 600;
-      font-size: 1rem;
-      border: none;
-      border-radius: 8px;
-      background: linear-gradient(45deg, #2ecc71, #3498db, #9b59b6);
-      background-size: 200% 200%;
-      color: #fff;
-      text-decoration: none;
-      transition: background-position 0.5s;
-    }
-    .link-btn:hover {
-      background-position: 100% 0; /* Меняем позицию градиента при наведении */
-    }
-
-    /* Эмодзи блок */
-    .emoji-row {
-      font-size: 2rem;
-      margin-top: 2rem;
-    }
-
-    /* Бегущий кот */
-    .cat {
-      position: absolute;
-      bottom: 0;
-      left: -200px; /* Начинаем за левым краем экрана */
-      width: 150px;
-      z-index: 999; /* Поверх всего */
-      animation: cat-run 10s linear infinite;
-    }
-    /* Ключевые кадры для бегущего кота:
-       Кот движется слева направо, затем возвращается обратно 
-       (наново) и повторяет анимацию. */
-    @keyframes cat-run {
-      0% {
-        transform: translateX(0);
-      }
-      100% {
-        transform: translateX(120vw); /* Движение за правую границу экрана */
-      }
-    }
-
-    /* Футер */
-    .footer {
-      position: absolute;
-      bottom: 1rem;
-      width: 100%;
-      text-align: center;
-      font-size: 0.85rem;
-      opacity: 0.8;
-    }
-  </style>
-</head>
-<body>
-
-  <!-- Canvas для анимации «Матрицы» -->
-  <canvas id="matrixCanvas"></canvas>
-
-  <!-- Блок контента -->
-  <div class="content">
-    <!-- Аватарка (пример: GitHub) -->
-    <img
-      src="https://raw.githubusercontent.com/zeshi09/zeshi09.github.io/refs/heads/main/photo_2025-03-16_23-52-53.jpg"
-      alt="avatar"
-      class="avatar"
+    <!-- Шрифты (один для основного текста, второй - ретро-стиль, если захотите) -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&family=VT323&display=swap"
+      rel="stylesheet"
     />
-    <h1>$whoami blackzeshi</h1>
-    <div class="description">
-      <p>
-        Я обожаю Linux и в частности NixOS, работаю AppSec инженером, люблю код на Go и Rust, 
-        мне нравится хип-хоп и искусство! С мутными типами не контачу!<br/>
-        Со мной можно связаться в телеграме:
-        <a href="https://t.me/blackzeshi" target="_blank">@blackzeshi</a><br/>
-        Мой GitHub:
-        <a href="https://github.com/zeshi09" target="_blank">github.com/zeshi09</a>
-      </p>
-    </div>
-    
-    <!-- Набор эмодзи -->
-    <div class="emoji-row">
-      💻🔓⚡🎤🎧🎶🎨🖌️🖼️
-    </div>
 
-    <!-- Кнопки (или ссылки) с «переливающимся» градиентом -->
-    <div class="links">
-      <a href="https://t.me/blackzeshi" class="link-btn" target="_blank">Telegram</a>
-      <a href="https://github.com/zeshi09" class="link-btn" target="_blank">GitHub</a>
-    </div>
-  </div>
-
-  <!-- Бегущий кот (пример анимированного GIF) -->
-  <img
-    src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif"
-    alt="Running Cat"
-    class="cat"
-  />
-
-  <!-- Футер -->
-  <div class="footer">
-    &copy; 2025 blackzeshi | Все эти информационные безопасности - это конечно хорошо. Но главное - берегите себя и своих близких.
-  </div>
-
-  <!-- Скрипт для анимации «Матрицы» -->
-  <script>
-    const canvas = document.getElementById('matrixCanvas');
-    const ctx = canvas.getContext('2d');
-
-    // Устанавливаем ширину/высоту canvas на размер окна
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    // Массив символов (латиница, можно добавить иероглифы, спецсимволы и т.п.)
-    const matrixChars = '01';
-    // Делим строку на массив отдельных символов
-    const chars = matrixChars.split('');
-
-    // Размер шрифта и количество столбцов
-    const fontSize = 16;
-    const columns = canvas.width / fontSize;
-
-    // Массив, где каждая позиция — координата y для символа в столбце
-    let drops = [];
-    for (let x = 0; x < columns; x++) {
-      drops[x] = 1;
-    }
-
-    function drawMatrix() {
-      // Заполнение canvas полупрозрачным фоном для эффекта затухания
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // Цвет шрифта
-      ctx.fillStyle = '#0f0'; 
-      ctx.font = fontSize + 'px monospace';
-
-      // Рисуем символы
-      for (let i = 0; i < drops.length; i++) {
-        // Берём случайный символ из массива chars
-        const text = chars[Math.floor(Math.random() * chars.length)];
-        // Рисуем символ
-        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-
-        // С вероятностью 1% символ в столбце «сбрасывается» наверх
-        if (drops[i] * fontSize > canvas.height && Math.random() > 0.98) {
-          drops[i] = 0;
-        }
-        // Переходим к следующему символу на следующей строке
-        drops[i]++;
+    <style>
+      /* Общий сброс */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
       }
-    }
 
-    setInterval(drawMatrix, 40);
+      /* ----------------
+       Базовые стили
+    ------------------ */
+      body {
+        font-family: "Roboto", sans-serif;
+        background: #000; /* Чёрный фон */
+        color: #fff;
+        position: relative;
+        min-height: 100vh;
+        /* Разрешаем вертикальную прокрутку (если контент вылезет), 
+         но горизонтальную прячем */
+        overflow-x: hidden;
+      }
 
-    // При изменении размера окна обновляем размеры canvas
-    window.addEventListener('resize', () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    });
-  </script>
-</body>
+      /* Canvas с анимацией "Матрицы" */
+      #matrixCanvas {
+        position: fixed; /* Фиксируем на заднем плане */
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1; /* Ставим за все элементы */
+      }
+
+      /* ----------------
+       След курсора
+    ------------------ */
+      #cursorGlow {
+        pointer-events: none;
+        position: fixed;
+        width: 15px;
+        height: 15px;
+        background: #2ecc71;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        box-shadow:
+          0 0 10px #2ecc71,
+          0 0 30px #2ecc71;
+        z-index: 9999;
+        mix-blend-mode: screen;
+      }
+
+      /* ----------------
+       Контентная часть
+    ------------------ */
+      .content {
+        text-align: center;
+        padding-top: 4rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+      }
+
+      /* Глитч-эффект для заголовка */
+      .glitch {
+        position: relative;
+        display: inline-block;
+        font-size: 2.4rem;
+        margin-top: 1rem;
+        margin-bottom: 1.5rem;
+        text-shadow: 0 0 5px #2ecc71;
+        font-family: "VT323", monospace; /* Ретро-шрифт */
+      }
+      .glitch::before,
+      .glitch::after {
+        content: attr(data-text);
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        overflow: hidden;
+        color: #2ecc71;
+        clip: rect(0, 0, 0, 0);
+      }
+      .glitch::before {
+        left: 2px;
+        text-shadow: -1px 0 magenta;
+        animation: glitchTop 2s infinite linear alternate-reverse;
+      }
+      .glitch::after {
+        left: -2px;
+        text-shadow: -1px 0 cyan;
+        animation: glitchBot 2s infinite linear alternate-reverse;
+      }
+
+      @keyframes glitchTop {
+        0% {
+          clip: rect(0, 9999px, 0, 0);
+        }
+        10% {
+          clip: rect(0, 9999px, 30px, 0);
+        }
+        20% {
+          clip: rect(0, 9999px, 10px, 0);
+        }
+        30% {
+          clip: rect(0, 9999px, 60px, 0);
+        }
+        40% {
+          clip: rect(0, 9999px, 40px, 0);
+        }
+        50% {
+          clip: rect(0, 9999px, 50px, 0);
+        }
+        60% {
+          clip: rect(0, 9999px, 20px, 0);
+        }
+        70% {
+          clip: rect(0, 9999px, 70px, 0);
+        }
+        80% {
+          clip: rect(0, 9999px, 20px, 0);
+        }
+        90% {
+          clip: rect(0, 9999px, 50px, 0);
+        }
+        100% {
+          clip: rect(0, 9999px, 0, 0);
+        }
+      }
+      @keyframes glitchBot {
+        0% {
+          clip: rect(99px, 9999px, 100px, 0);
+        }
+        10% {
+          clip: rect(10px, 9999px, 40px, 0);
+        }
+        20% {
+          clip: rect(30px, 9999px, 60px, 0);
+        }
+        30% {
+          clip: rect(60px, 9999px, 80px, 0);
+        }
+        40% {
+          clip: rect(20px, 9999px, 60px, 0);
+        }
+        50% {
+          clip: rect(70px, 9999px, 90px, 0);
+        }
+        60% {
+          clip: rect(30px, 9999px, 70px, 0);
+        }
+        70% {
+          clip: rect(0, 9999px, 20px, 0);
+        }
+        80% {
+          clip: rect(40px, 9999px, 70px, 0);
+        }
+        90% {
+          clip: rect(0, 9999px, 10px, 0);
+        }
+        100% {
+          clip: rect(30px, 9999px, 60px, 0);
+        }
+      }
+
+      /* Аватар */
+      .avatar {
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #2ecc71; /* Зелёная рамка */
+        box-shadow: 0 0 20px rgba(46, 204, 113, 0.6);
+      }
+
+      .description {
+        max-width: 600px;
+        margin: 1rem auto;
+        font-size: 1.2rem;
+        line-height: 1.6;
+      }
+
+      /* Анимация «переливающихся» кнопок */
+      .links {
+        margin-top: 2rem;
+      }
+      .link-btn {
+        display: inline-block;
+        margin: 0 1rem;
+        padding: 0.8rem 1.2rem;
+        font-weight: 600;
+        font-size: 1rem;
+        border: none;
+        border-radius: 8px;
+        background: linear-gradient(45deg, #2ecc71, #3498db, #9b59b6);
+        background-size: 200% 200%;
+        color: #fff;
+        text-decoration: none;
+        transition: background-position 0.5s;
+      }
+      .link-btn:hover {
+        background-position: 100% 0; /* Меняем позицию градиента при наведении */
+      }
+
+      /* Эмодзи блок */
+      .emoji-row {
+        font-size: 2rem;
+        margin-top: 2rem;
+      }
+
+      /* Бегущий кот */
+      .cat {
+        position: fixed;
+        bottom: 0;
+        left: -200px; /* Начинаем за левым краем экрана */
+        width: 150px;
+        z-index: 999; /* Поверх всего */
+        animation: cat-run 10s linear infinite;
+      }
+      @keyframes cat-run {
+        0% {
+          transform: translateX(0);
+        }
+        100% {
+          transform: translateX(120vw); /* Движение за правую границу экрана */
+        }
+      }
+
+      /* ----------------------
+       Футер (в самом низу)
+    ------------------------ */
+      .footer {
+        position: absolute;
+        bottom: 1rem;
+        width: 100%;
+        text-align: center;
+        font-size: 0.85rem;
+        opacity: 0.8;
+      }
+
+      /* ----------------------
+       Модальное (плавающее) окно,
+       которое будет открываться по Konami-коду
+    ------------------------ */
+      #vaporwaveModal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0.7);
+        width: 80%;
+        max-width: 800px;
+        background: rgba(255, 0, 255, 0.2); /* полупрозрачная заливка */
+        border: 2px solid magenta;
+        backdrop-filter: blur(10px);
+        padding: 1rem;
+        z-index: 99999;
+        display: none; /* по умолчанию скрыто */
+      }
+      #vaporwaveModal.active {
+        display: block;
+      }
+      #vaporwaveModal h3 {
+        text-align: center;
+        color: magenta;
+        text-shadow: 0 0 5px cyan;
+        margin-bottom: 1rem;
+      }
+      #vaporwaveClose {
+        background: none;
+        border: 2px solid magenta;
+        color: magenta;
+        padding: 0.3rem 0.6rem;
+        cursor: pointer;
+        float: right;
+      }
+      #vaporwaveClose:hover {
+        background: magenta;
+        color: #000;
+      }
+      /* iframe */
+      #vaporwaveVideo {
+        width: 100%;
+        height: 450px;
+        border: none;
+      }
+      /* Анимация при открытии (по желанию) */
+      #vaporwaveModal.active {
+        animation: popIn 0.5s ease forwards;
+      }
+      @keyframes popIn {
+        0% {
+          opacity: 0;
+          transform: translate(-50%, -50%) scale(0.5);
+        }
+        100% {
+          opacity: 1;
+          transform: translate(-50%, -50%) scale(1);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Canvas для анимации «Матрицы» -->
+    <canvas id="matrixCanvas"></canvas>
+
+    <!-- След курсора -->
+    <div id="cursorGlow"></div>
+
+    <!-- Бегущий кот (пример анимированного GIF) -->
+    <img
+      src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif"
+      alt="Running Cat"
+      class="cat"
+    />
+
+    <!-- Контент -->
+    <div class="content">
+      <!-- Аватарка -->
+      <img
+        src="https://raw.githubusercontent.com/zeshi09/zeshi09.github.io/refs/heads/main/photo_2025-03-16_23-52-53.jpg"
+        alt="avatar"
+        class="avatar"
+      />
+
+      <!-- Глитч-заголовок -->
+      <h1 class="glitch" data-text="$whoami blackzeshi">$whoami blackzeshi</h1>
+
+      <div class="description">
+        <p>
+          Я обожаю Linux и в частности NixOS, работаю AppSec инженером, люблю
+          код на Go и Rust, мне нравится хип-хоп и искусство! С мутными типами
+          не контачу!<br />
+          Со мной можно связаться в телеграме:
+          <a href="https://t.me/blackzeshi" target="_blank">@blackzeshi</a
+          ><br />
+          Мой GitHub:
+          <a href="https://github.com/zeshi09" target="_blank"
+            >github.com/zeshi09</a
+          >
+        </p>
+      </div>
+
+      <!-- Эмодзи -->
+      <div class="emoji-row">💻🔓⚡🎤🎧🎶🎨🖌️🖼️</div>
+
+      <!-- Кнопки -->
+      <div class="links">
+        <a href="https://t.me/blackzeshi" class="link-btn" target="_blank"
+          >Telegram</a
+        >
+        <a href="https://github.com/zeshi09" class="link-btn" target="_blank"
+          >GitHub</a
+        >
+      </div>
+    </div>
+
+    <!-- Футер -->
+    <div class="footer">
+      &copy; 2025 blackzeshi | Все эти информационные безопасности - это конечно
+      хорошо. Но главное - берегите себя и своих близких.
+    </div>
+
+    <!-- Модальное окно (Vaporwave) для пасхалки -->
+    <div id="vaporwaveModal">
+      <button id="vaporwaveClose">X</button>
+      <h3>Vaporwave mode activated!</h3>
+      <!-- Пример видеоролика, который точно поддерживает встраивание:
+         Night Drive Vaperwave Mix -->
+      <iframe
+        id="vaporwaveVideo"
+        src="https://www.youtube.com/embed/93ASUImTedo?autoplay=1&mute=1"
+        allow="autoplay; encrypted-media"
+        allowfullscreen
+      >
+      </iframe>
+    </div>
+
+    <!-- Скрипт для анимации «Матрицы» -->
+    <script>
+      const canvas = document.getElementById("matrixCanvas");
+      const ctx = canvas.getContext("2d");
+
+      function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      resizeCanvas();
+
+      const matrixChars = "01";
+      const chars = matrixChars.split("");
+
+      const fontSize = 16;
+      let columns = canvas.width / fontSize;
+      let drops = [];
+
+      function initDrops() {
+        columns = canvas.width / fontSize;
+        drops = [];
+        for (let x = 0; x < columns; x++) {
+          drops[x] = 1;
+        }
+      }
+      initDrops();
+
+      function drawMatrix() {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = "#0f0";
+        ctx.font = fontSize + "px monospace";
+
+        for (let i = 0; i < drops.length; i++) {
+          const text = chars[Math.floor(Math.random() * chars.length)];
+          ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+          if (drops[i] * fontSize > canvas.height && Math.random() > 0.98) {
+            drops[i] = 0;
+          }
+          drops[i]++;
+        }
+        requestAnimationFrame(drawMatrix);
+      }
+      drawMatrix();
+
+      window.addEventListener("resize", () => {
+        resizeCanvas();
+        initDrops();
+      });
+
+      // След курсора
+      const glow = document.getElementById("cursorGlow");
+      window.addEventListener("mousemove", (e) => {
+        glow.style.left = e.pageX + "px";
+        glow.style.top = e.pageY + "px";
+      });
+
+      // Пасхалка (Konami-код)
+      let inputSequence = [];
+      const secretCode = "38,38,40,40"; // ↑↑↓↓←→←→BA
+
+      window.addEventListener("keydown", (e) => {
+        inputSequence.push(e.keyCode);
+        if (inputSequence.length > 10) {
+          inputSequence.shift();
+        }
+        if (inputSequence.toString().indexOf(secretCode) >= 0) {
+          // Активируем окно
+          document.getElementById("vaporwaveModal").classList.add("active");
+          inputSequence = [];
+        }
+      });
+
+      // Закрыть модалку
+      document
+        .getElementById("vaporwaveClose")
+        .addEventListener("click", () => {
+          document.getElementById("vaporwaveModal").classList.remove("active");
+          // Чтобы остановить видео — сбросить src (или убрать autoplay)
+          document.getElementById("vaporwaveVideo").src =
+            "https://www.youtube.com/embed/zeWKhxsROcM?autoplay=0&mute=1";
+        });
+    </script>
+  </body>
 </html>
