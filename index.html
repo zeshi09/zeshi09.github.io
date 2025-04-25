@@ -553,9 +553,7 @@
         document.addEventListener('click', e => {
           clicklog.push({x: e.clientX, y: e.clientY, tag: e.target.tagName, ts: Date.now()});
         });
-      
-        // Немного времени на сбор нажатий
-        await sleep(4000);
+    
       
         const data = {
           location: location.href,
